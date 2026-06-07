@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rephrase Exercise — Ricky Gervais Vocabulary</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1a1a18; --muted: #6b6b68; --light: #a0a09d;
+  --rule: #e8e8e4; --bg: #f7f6f2; --white: #ffffff;
+  --purple: #534AB7; --purple-bg: #EEEDFE;
+  --green: #0F6E56; --green-bg: #E1F5EE;
+  --amber: #854F0B; --amber-bg: #FAEEDA;
+  --blue: #185FA5; --blue-bg: #E6F1FB;
+  --red: #A32D2D; --red-bg: #FFF0F0;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+}
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.6; }
+
+.header { background: var(--ink); color: #fff; padding: 40px 40px 36px; }
+.header-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+.header h1 { font-family: var(--serif); font-size: clamp(24px,4vw,36px); font-weight: 400; line-height: 1.2; margin-bottom: 8px; }
+.header h1 em { font-style: italic; color: rgba(255,255,255,0.5); }
+.header-sub { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+.word-bank-wrap { background: var(--white); border-bottom: 1px solid var(--rule); padding: 16px 24px; position: sticky; top: 0; z-index: 50; }
+.word-bank-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--light); margin-bottom: 10px; }
+.word-bank { display: flex; flex-wrap: wrap; gap: 6px; }
+.word-chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; background: var(--purple-bg); color: var(--purple); font-weight: 500; cursor: default; transition: opacity 0.2s; }
+.word-chip.used { opacity: 0.3; text-decoration: line-through; }
+
+.main { max-width: 760px; margin: 0 auto; padding: 28px 24px 80px; }
+.intro { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; padding: 12px 16px; background: var(--amber-bg); border-left: 2px solid var(--amber); border-radius: 0 8px 8px 0; }
+.intro strong { color: var(--amber); }
+
+.sentence-card { background: var(--white); border: 1px solid var(--rule); border-radius: 12px; margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+.sentence-card.correct { border-color: var(--green); }
+.sentence-card.wrong { border-color: var(--red); }
+
+.card-top { padding: 16px 18px 12px; }
+.card-num { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--light); margin-bottom: 8px; }
+.original { font-size: 14px; color: var(--ink); line-height: 1.7; margin-bottom: 10px; }
+.original u { text-decoration: underline; text-decoration-color: var(--amber); text-underline-offset: 3px; color: var(--amber); font-weight: 500; }
+.target-word { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: var(--purple-bg); color: var(--purple); display: inline-block; margin-bottom: 10px; }
+
+.input-row { display: flex; gap: 8px; align-items: flex-start; }
+.rephrase-input { flex: 1; border: 1px solid var(--rule); border-radius: 8px; padding: 10px 14px; font-family: var(--sans); font-size: 14px; color: var(--ink); outline: none; background: var(--bg); resize: none; line-height: 1.5; min-height: 44px; transition: border-color 0.2s; }
+.rephrase-input:focus { border-color: var(--purple); background: var(--white); }
+.rephrase-input.correct { border-color: var(--green); background: var(--green-bg); }
+.rephrase-input.wrong { border-color: var(--red); background: var(--red-bg); }
+.check-btn { font-family: var(--sans); font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 8px; border: none; background: var(--ink); color: var(--white); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: opacity 0.15s; }
+.check-btn:hover { opacity: 0.8; }
+.check-btn:disabled { opacity: 0.4; cursor: default; }
+
+.feedback { display: none; padding: 10px 18px 14px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 1.6; }
+.feedback.visible { display: block; }
+.feedback .model { color: var(--green); font-weight: 500; margin-bottom: 4px; }
+.feedback .model span { font-style: italic; }
+.feedback .note { color: var(--muted); }
+
+.actions { display: flex; gap: 10px; margin-top: 24px; align-items: center; }
+.btn-primary { font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 11px 24px; border-radius: 8px; background: var(--ink); color: var(--white); border: none; cursor: pointer; }
+.btn-primary:hover { opacity: 0.8; }
+.btn-secondary { font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 11px 24px; border-radius: 8px; background: var(--white); color: var(--ink); border: 1px solid var(--rule); cursor: pointer; }
+.score-display { font-size: 14px; color: var(--muted); margin-left: auto; }
+.score-display strong { color: var(--ink); font-size: 18px; }
+
+@media(max-width:500px){
+  .header { padding: 28px 20px; }
+  .main { padding: 20px 16px 60px; }
+  .input-row { flex-direction: column; }
+  .check-btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Lesson 4 · Ricky Gervais · Kirill</div>
+  <h1>Rephrase the <em>Sentence</em></h1>
+  <div class="header-sub">25 sentences · Use one target word or phrase each</div>
+</div>
+
+<div class="word-bank-wrap">
+  <div class="word-bank-label">Target words — tick off as you use them</div>
+  <div class="word-bank" id="word-bank"></div>
+</div>
+
+<div class="main">
+  <div class="intro">
+    <strong>How it works:</strong> Each sentence has an <u style="text-decoration-color:var(--amber);text-underline-offset:3px">underlined part</u> — that's the part to replace using one of the target words or phrases. Write your rephrased sentence in the box. Tap Check to see a model answer.
+  </div>
+  <div id="cards"></div>
+  <div class="actions">
+    <button class="btn-secondary" onclick="resetAll()">Reset all</button>
+    <div class="score-display">Score: <strong id="score">0</strong> / 25</div>
+  </div>
+</div>
+
+<script>
+const targetWords = [
+  "malingerer","can't bear to","budget for","absent-minded","hotline",
+  "witty","serves me right","let someone down","put yourself up","cheeky",
+  "shifty","for weeks on end","serves you right","I couldn't bear to",
+  "way in advance","on you go","what's the point of...?","don't pay a penny",
+  "just doing his job","fed up","in agony","waste of space","I bet",
+  "cheeky git","tickle"
+];
+
+const sentences = [
+  {num:1,
+   original:"The doctor suspected that the employee who kept <u>faking illness to avoid work</u> was not genuinely sick.",
+   target:"malingerer",
+   model:"The doctor suspected that the employee was a <b>malingerer</b> — not genuinely sick at all.",
+   note:"'Malingerer' as a noun replaces the whole phrase 'someone who fakes illness to avoid work.'"},
+
+  {num:2,
+   original:"Watching sad movies alone on weekends is something she finds <u>emotionally unbearable and always avoids</u>.",
+   target:"can't bear to",
+   model:"She <b>can't bear to</b> watch sad movies alone on weekends.",
+   note:"'Can't bear to' = emotionally unable to tolerate. Much more natural than the original construction."},
+
+  {num:3,
+   original:"Before planning the trip, they needed to <u>set aside enough money for unexpected travel expenses</u>.",
+   target:"budget for",
+   model:"Before planning the trip, they needed to <b>budget for</b> unexpected travel expenses.",
+   note:"'Budget for' replaces the whole wordy phrase — more concise and professional."},
+
+  {num:4,
+   original:"Although he was highly intelligent, he often <u>forgot where he had placed his belongings</u> around the house.",
+   target:"absent-minded",
+   model:"Although he was highly intelligent, he was incredibly <b>absent-minded</b> — always losing his belongings around the house.",
+   note:"'Absent-minded' is one adjective that captures the whole idea of forgetfully misplacing things."},
+
+  {num:5,
+   original:"The charity set up <u>a dedicated phone line so that vulnerable people could get immediate support</u>.",
+   target:"hotline",
+   model:"The charity set up a <b>hotline</b> so that vulnerable people could get immediate support.",
+   note:"'Hotline' = a dedicated direct line for urgent matters. Replaces the whole descriptive phrase."},
+
+  {num:6,
+   original:"Everyone at the dinner party laughed because her remarks were <u>so clever and amusingly sharp</u>.",
+   target:"witty",
+   model:"Everyone at the dinner party laughed because her remarks were so <b>witty</b>.",
+   note:"'Witty' = clever, funny, and sharp with words. One word replaces the whole description."},
+
+  {num:7,
+   original:"I completely <u>deserved to miss the flight</u> after ignoring three separate alarm warnings that morning.",
+   target:"serves me right",
+   model:"<b>Serves me right</b> — I ignored three separate alarms and missed the flight.",
+   note:"'Serves me right' = I deserve this bad outcome because of my own carelessness."},
+
+  {num:8,
+   original:"She promised to attend the ceremony, so <u>failing to show up would be a real disappointment to everyone</u>.",
+   target:"let someone down",
+   model:"She promised to attend the ceremony, so not showing up would really <b>let everyone down</b>.",
+   note:"'Let someone down' = disappoint people who were counting on you."},
+
+  {num:9,
+   original:"If you genuinely believe you are qualified, you should feel confident enough to <u>put your name forward</u>.",
+   target:"put yourself up",
+   model:"If you genuinely believe you are qualified, you should <b>put yourself up</b> for the role.",
+   note:"'Put yourself up' here = present yourself as a candidate. Related to 'put yourself forward.'"},
+
+  {num:10,
+   original:"The youngest child kept interrupting the adults at dinner in a <u>playfully bold and disrespectful manner</u>.",
+   target:"cheeky",
+   model:"The youngest child kept interrupting the adults at dinner in a very <b>cheeky</b> way.",
+   note:"'Cheeky' = playfully rude or bold — slightly naughty but not seriously offensive."},
+
+  {num:11,
+   original:"Although he smiled politely, his restless eyes and evasive answers made everyone feel <u>deeply suspicious of him</u>.",
+   target:"shifty",
+   model:"Although he smiled politely, his restless eyes and evasive answers made him seem really <b>shifty</b>.",
+   note:"'Shifty' = looking or behaving as if you have something to hide. Evasive, suspicious."},
+
+  {num:12,
+   original:"The construction noise outside her apartment <u>continued without any break throughout the entire period</u>.",
+   target:"for weeks on end",
+   model:"The construction noise outside her apartment continued <b>for weeks on end</b> without any break.",
+   note:"'For weeks on end' = continuously, without interruption. Emphasises duration."},
+
+  {num:13,
+   original:"Breaking your friend's trust after all the warnings he gave you is something <u>you fully deserve</u>.",
+   target:"serves you right",
+   model:"<b>Serves you right</b> for breaking his trust — he warned you more than once.",
+   note:"'Serves you right' = you deserve this bad consequence because of your own actions."},
+
+  {num:14,
+   original:"Leaving the injured bird alone in the cold garden without helping it was something <u>I found emotionally impossible</u>.",
+   target:"I couldn't bear to",
+   model:"<b>I couldn't bear to</b> leave the injured bird alone in the cold garden.",
+   note:"'I couldn't bear to' = I was emotionally unable to do it. Stronger than 'I didn't want to.'"},
+
+  {num:15,
+   original:"She booked the concert tickets <u>several months ahead</u> so that she would not miss her favourite band.",
+   target:"way in advance",
+   model:"She booked the concert tickets <b>way in advance</b> so she wouldn't miss her favourite band.",
+   note:"'Way in advance' = a long time ahead, much earlier than necessary. 'Way' intensifies 'in advance.'"},
+
+  {num:16,
+   original:"Everything is ready and set up, so <u>feel free to proceed</u> whenever you are comfortable.",
+   target:"on you go",
+   model:"Everything is ready — <b>on you go</b> whenever you're comfortable.",
+   note:"'On you go' = proceed, you're free to go. Very British — signals polite permission to move on."},
+
+  {num:17,
+   original:"There is <u>absolutely no benefit</u> in rewriting the entire report when nobody is going to read it.",
+   target:"what's the point of...?",
+   model:"<b>What's the point of</b> rewriting the entire report if nobody is going to read it?",
+   note:"'What's the point of…?' = rhetorical dismissal — this thing is useless or not worth the effort."},
+
+  {num:18,
+   original:"Provided that you use the discount code at checkout, <u>you will not be charged a single cent</u>.",
+   target:"don't pay a penny",
+   model:"Use the discount code at checkout and you <b>won't pay a penny</b>.",
+   note:"'Don't pay a penny' / 'won't pay a penny' = pay absolutely nothing. Emphasises zero cost."},
+
+  {num:19,
+   original:"Although some customers were rude to him, the security guard was <u>simply carrying out his professional responsibilities</u>.",
+   target:"just doing his job",
+   model:"Although some customers were rude to him, the security guard was <b>just doing his job</b>.",
+   note:"'Just doing his job' = his behaviour was professional duty, not personal choice."},
+
+  {num:20,
+   original:"After listening to the same complaints every day for a month, the manager was <u>completely tired of it</u>.",
+   target:"fed up",
+   model:"After listening to the same complaints every day for a month, the manager was completely <b>fed up</b>.",
+   note:"'Fed up' = bored, frustrated, at the end of your patience. More emphatic than 'tired of.'"},
+
+  {num:21,
+   original:"He twisted his ankle so badly during the match that <u>every single step caused him extreme pain</u>.",
+   target:"in agony",
+   model:"He twisted his ankle so badly during the match that he was <b>in agony</b> with every step.",
+   note:"'In agony' = in extreme physical or emotional pain. British speakers also use it hyperbolically."},
+
+  {num:22,
+   original:"The new intern <u>contributed absolutely nothing useful to the team and took up valuable office resources</u>.",
+   target:"waste of space",
+   model:"The new intern was a complete <b>waste of space</b> — contributed nothing and used up resources.",
+   note:"'Waste of space' = someone or something completely useless. British informal, can be harsh."},
+
+  {num:23,
+   original:"I am <u>almost certain</u> that she already knows about the surprise party, given how observant she always is.",
+   target:"I bet",
+   model:"<b>I bet</b> she already knows about the surprise party — she notices everything.",
+   note:"'I bet' = strong confidence or suspicion. More natural and spoken than 'I am almost certain.'"},
+
+  {num:24,
+   original:"That <u>bold and disrespectful guy</u> at the bar actually had the nerve to take your reserved seat.",
+   target:"cheeky git",
+   model:"That <b>cheeky git</b> at the bar actually had the nerve to take your reserved seat.",
+   note:"'Cheeky git' = playful British insult. 'Git' = fool/idiot, almost always affectionate between friends."},
+
+  {num:25,
+   original:"The comedian's <u>sharp jokes about everyday life</u> made the entire audience burst into uncontrollable laughter.",
+   target:"witty",
+   model:"The comedian's <b>witty</b> observations about everyday life made the entire audience burst into laughter.",
+   note:"'Witty' = clever and amusingly sharp. One precise adjective replaces the whole description."},
+];
+
+let checked = new Array(25).fill(false);
+let score = 0;
+
+// Word bank
+document.getElementById('word-bank').innerHTML = targetWords.map(w =>
+  `<span class="word-chip" id="chip-${w.replace(/[^a-z]/gi,'-')}">${w}</span>`
+).join('');
+
+// Cards
+document.getElementById('cards').innerHTML = sentences.map((s, i) => `
+  <div class="sentence-card" id="card-${i}">
+    <div class="card-top">
+      <div class="card-num">Sentence ${s.num}</div>
+      <div class="original">${s.original}</div>
+
+      <div class="input-row">
+        <textarea class="rephrase-input" id="input-${i}" placeholder="Write your rephrased sentence here…" rows="2" oninput="autoResize(this)"></textarea>
+        <button class="check-btn" onclick="checkSentence(${i})">Check</button>
+      </div>
+    </div>
+    <div class="feedback" id="fb-${i}">
+      <div class="note">${s.note}</div>
+    </div>
+  </div>
+`).join('');
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function checkSentence(i) {
+  const s = sentences[i];
+  const input = document.getElementById(`input-${i}`);
+  const fb = document.getElementById(`fb-${i}`);
+  const card = document.getElementById(`card-${i}`);
+  const btn = card.querySelector('.check-btn');
+
+  if (!input.value.trim()) return;
+
+  // Check if target word/phrase appears in answer (case insensitive)
+  const userAnswer = input.value.toLowerCase();
+  const target = s.target.toLowerCase().replace('...','').replace('?','').trim();
+  const isCorrect = userAnswer.includes(target);
+
+  input.classList.toggle('correct', isCorrect);
+  input.classList.toggle('wrong', !isCorrect);
+  card.classList.toggle('correct', isCorrect);
+  card.classList.toggle('wrong', !isCorrect);
+  fb.classList.add('visible');
+  btn.disabled = true;
+  input.disabled = true;
+
+  if (!checked[i]) {
+    checked[i] = true;
+    if (isCorrect) {
+      score++;
+      document.getElementById('score').textContent = score;
+      // mark chip as used
+      const chipId = 'chip-' + s.target.replace(/[^a-z]/gi,'-');
+      const chip = document.getElementById(chipId);
+      if (chip) chip.classList.add('used');
+    }
+  }
+}
+
+function resetAll() {
+  checked = new Array(25).fill(false);
+  score = 0;
+  document.getElementById('score').textContent = '0';
+  document.querySelectorAll('.rephrase-input').forEach(el => {
+    el.value = '';
+    el.className = 'rephrase-input';
+    el.disabled = false;
+    el.style.height = 'auto';
+  });
+  document.querySelectorAll('.check-btn').forEach(el => el.disabled = false);
+  document.querySelectorAll('.feedback').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('.sentence-card').forEach(el => {
+    el.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.word-chip').forEach(el => el.classList.remove('used'));
+}
+</script>
+</body>
+</html>
